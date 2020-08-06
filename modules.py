@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch.distributions import Normal
+from torch.distributions import Normal, Bernoulli
 
 
 class Retina:
@@ -239,7 +239,7 @@ class ActionNetwork(nn.Module):
     layer followed by a softmax to create a vector of
     output probabilities over the possible classes.
 
-    Hence, the environment action `a_t` is drawn from a
+    Hence, the environment action `y_t` is drawn from a
     distribution conditioned on an affine transformation
     of the hidden state vector `h_t`, or in other words,
     the action network is simply a linear softmax classifier.
@@ -251,7 +251,7 @@ class ActionNetwork(nn.Module):
             for the current time step `t`.
 
     Returns:
-        a_t: output probability vector over the classes.
+        y_t: output probability vector over the classes.
     """
 
     def __init__(self, input_size, output_size):
@@ -260,8 +260,8 @@ class ActionNetwork(nn.Module):
         self.fc = nn.Linear(input_size, output_size)
 
     def forward(self, h_t):
-        a_t = F.log_softmax(self.fc(h_t), dim=1)
-        return a_t
+        y_t = F.log_softmax(self.fc(h_t), dim=1)
+        return y_t
 
 
 class LocationNetwork(nn.Module):
@@ -324,6 +324,48 @@ class LocationNetwork(nn.Module):
         return log_pi, l_t
 
 
+class StoppingNetwork(nn.Module):
+    """The stopping network.
+
+    Uses the internal state `h_t` of the core network
+    to determine whether the network integrated enough
+    information to make a confident classification.
+
+    Practically, take the internal state `h_t` as input
+    and outputs a binary action `a_t` which states
+    whether the network should stop or continue with
+    the glimpses.
+
+    Args:
+        input_size: input size of the fc layer.
+        output_size: output size of the fc layer.
+        h_t: the hidden state vector of the core network
+            for the current time step `t`.
+
+    Returns:
+        a_t: a 2D vector of shape (B, 1).
+         The stopping action for the current time step `t`.
+    """
+
+    def __init__(self, input_size, output_size):
+        super().__init__()
+
+        self.fc = nn.Linear(input_size, input_size)
+        self.fc_at = nn.Linear(input_size, 1)
+
+    def forward(self, h_t):
+        # compute stopping probability
+        feat = F.relu(self.fc(h_t.detach()))
+        a_t_pi = F.hardtanh(input=self.fc_at(feat), min_val=-10, max_val=10)
+        a_t_pi = F.sigmoid(a_t_pi)
+
+        a_t = Bernoulli(probs=a_t_pi).sample()
+        a_t = a_t.detach()
+        log_pi = Bernoulli(probs=a_t_pi).log_prob(a_t)
+
+        return log_pi, a_t
+
+
 class BaselineNetwork(nn.Module):
     """The baseline network.
 
@@ -350,3 +392,4 @@ class BaselineNetwork(nn.Module):
     def forward(self, h_t):
         b_t = self.fc(h_t.detach())
         return b_t
+
