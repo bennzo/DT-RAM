@@ -49,6 +49,9 @@ reinforce_arg.add_argument(
 reinforce_arg.add_argument(
     "--M", type=int, default=1, help="Monte Carlo sampling for valid and test sets"
 )
+reinforce_arg.add_argument(
+    "--gamma", type=float, default=1, help="Discount factor for the DT-RAM REINFORCE reward"
+)
 
 
 # data params
@@ -80,6 +83,18 @@ data_arg.add_argument(
     default=False,
     help="Whether to visualize a sample grid of the data",
 )
+data_arg.add_argument(
+    "--num_classes",
+    type=int,
+    default=10,
+    help="# of classes for classification in the dataset",
+)
+data_arg.add_argument(
+    "--num_channels",
+    type=int,
+    default=1,
+    help="# of color channels in the dataset images",
+)
 
 
 # training params
@@ -108,6 +123,9 @@ train_arg.add_argument(
     default=50,
     help="Number of epochs to wait before stopping train",
 )
+train_arg.add_argument(
+    "--train_dynamic", type=str2bool, default=False, help="Train dynamic model (DT-RAM) instead of classic RAM"
+)
 
 
 # other params
@@ -125,7 +143,7 @@ misc_arg.add_argument(
     "--random_seed", type=int, default=1, help="Seed to ensure reproducibility"
 )
 misc_arg.add_argument(
-    "--data_dir", type=str, default="./data", help="Directory in which data is stored"
+    "--data_dir", type=str, default="../data/mnist", help="Directory in which data is stored"
 )
 misc_arg.add_argument(
     "--ckpt_dir",
@@ -150,6 +168,18 @@ misc_arg.add_argument(
     type=str2bool,
     default=False,
     help="Whether to resume training from checkpoint",
+)
+misc_arg.add_argument(
+    "--resume_fresh",
+    type=str2bool,
+    default=False,
+    help="Whether to resume training from checkpoint but restart epochs",
+)
+misc_arg.add_argument(
+    "--ckpt_name",
+    type=str,
+    default="",
+    help="Name of the checkpoint file to resume from",
 )
 misc_arg.add_argument(
     "--print_freq",

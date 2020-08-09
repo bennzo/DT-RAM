@@ -4,6 +4,7 @@ import utils
 import data_loader
 
 from trainer import Trainer
+from trainer_dynamic import TrainerDynamic
 from config import get_config
 
 
@@ -12,10 +13,10 @@ def main(config):
 
     # ensure reproducibility
     torch.manual_seed(config.random_seed)
-    kwargs = {}
+    kwargs = {"num_workers": config.num_workers}
     if config.use_gpu:
         torch.cuda.manual_seed(config.random_seed)
-        kwargs = {"num_workers": 1, "pin_memory": True}
+        kwargs = {"num_workers": config.num_workers, "pin_memory": True}
 
     # instantiate data loaders
     if config.is_train:
@@ -33,7 +34,10 @@ def main(config):
             config.data_dir, config.batch_size, **kwargs,
         )
 
-    trainer = Trainer(config, dloader)
+    cls_train = Trainer
+    if config.train_dynamic:
+        cls_train = TrainerDynamic
+    trainer = cls_train(config, dloader)
 
     # either train
     if config.is_train:

@@ -357,7 +357,7 @@ class StoppingNetwork(nn.Module):
         # compute stopping probability
         feat = F.relu(self.fc(h_t.detach()))
         a_t_pi = F.hardtanh(input=self.fc_at(feat), min_val=-10, max_val=10)
-        a_t_pi = F.sigmoid(a_t_pi)
+        a_t_pi = torch.sigmoid(a_t_pi)
 
         a_t = Bernoulli(probs=a_t_pi).sample()
         a_t = a_t.detach()

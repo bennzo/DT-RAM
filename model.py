@@ -89,7 +89,7 @@ class RecurrentAttention(nn.Module):
         return h_t, l_t, b_t, log_pi
 
 
-class DynamicRecurrentAttention(nn.Module):
+class RecurrentAttentionDynamic(nn.Module):
     """A Recurrent Model of Visual Attention (RAM) [1].
 
     Similar implementation to the `RecurrentAttention` class
@@ -171,4 +171,4 @@ class DynamicRecurrentAttention(nn.Module):
         b_t = self.baseliner(h_t).squeeze()
 
 
-        return h_t, l_t, b_t, log_prob_class, log_pi_loc, a_t, log_pi_stop
+        return h_t, l_t, b_t, log_prob_class, log_pi_loc, a_t.squeeze(), log_pi_stop.squeeze()

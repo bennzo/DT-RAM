@@ -25,9 +25,9 @@ def main(plot_dir, epoch):
     glimpses = pickle.load(open(plot_dir + "g_{}.p".format(epoch), "rb"))
     locations = pickle.load(open(plot_dir + "l_{}.p".format(epoch), "rb"))
 
-    from ipdb import set_trace
-
-    set_trace()
+    # from ipdb import set_trace
+    #
+    # set_trace()
 
     glimpses = np.concatenate(glimpses)
 
